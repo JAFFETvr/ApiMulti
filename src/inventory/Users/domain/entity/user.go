@@ -22,3 +22,10 @@ type registrationRequest struct {
 func NewRegistrationRequest(username string,password_hash string, status string) *registrationRequest {
 	return &registrationRequest{username: username, password_hash: password_hash, status: status}
 }
+type AprovedUser struct {
+	id           int32
+	username     string
+	passwordHash string
+	macAddress   string
+	role         string
+}

@@ -40,9 +40,7 @@ func NewMySQLUserRepository() (*MySQLUserRepository, error) {
 	return &MySQLUserRepository{DB: db}, nil
 }
 
-
 func (repo *MySQLUserRepository) SaveRequest(username string, passwordHash string) error {
-	
 	_, err := repo.DB.Exec("INSERT INTO registration_requests (username, password_hash, status) VALUES (?, ?, 'pending')", username, passwordHash)
 	if err != nil {
 		return fmt.Errorf("error al guardar solicitud de registro: %w", err)
@@ -109,4 +107,30 @@ func (repo *MySQLUserRepository) RejectUser(id int) error {
 		return fmt.Errorf("error al rechazar solicitud de usuario: %w", err)
 	}
 	return nil
+}
+
+func (repo *MySQLUserRepository) GetApprovedUsers() ([]map[string]interface{}, error) {
+	rows, err := repo.DB.Query("SELECT id, username, password_hash, mac_address, role FROM users")
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener usuarios aprobados: %w", err)
+	}
+	defer rows.Close()
+
+	var users []map[string]interface{}
+	for rows.Next() {
+		var id int32
+		var username, passwordHash, macAddress, role string
+		if err := rows.Scan(&id, &username, &passwordHash, &macAddress, &role); err != nil {
+			return nil, fmt.Errorf("error al escanear usuarios aprobados: %w", err)
+		}
+		user := map[string]interface{}{
+			"id":            id,
+			"username":      username,
+			"password_hash": passwordHash,
+			"mac_address":   macAddress,
+			"role":          role,
+		}
+		users = append(users, user)
+	}
+	return users, nil
 }

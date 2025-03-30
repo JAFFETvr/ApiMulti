@@ -21,4 +21,6 @@ func RegisterUserRoutes(r *gin.Engine, db *sql.DB) {
 	r.POST("/register", controller.RegisterUser)
 	r.GET("/pending_requests", controller.GetPendingRequests)
 	r.POST("/approve", controller.ApproveUser)
+	r.DELETE("/pending_requests/:id", controller.RejectUser) 
+	r.GET("/approved_users", controller.GetApprovedUsers)
 }

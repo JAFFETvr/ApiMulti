@@ -1,7 +1,6 @@
 package equipamentcontrollers
 
 import (
-
 	"github.com/gin-gonic/gin"
 	equipmentusecases "gym-system/src/inventory/Users/application/useCases"
 	"gym-system/src/inventory/Users/domain/repository"
@@ -17,46 +16,33 @@ func NewUserController(repo repository.IUserRepository) *UserController {
 	return &UserController{Repo: repo}
 }
 
-// Adaptar la función RegisterUser a Gin
 func (c *UserController) RegisterUser(ctx *gin.Context) {
 	var request map[string]string
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		// Si hay error al leer el JSON, respondemos con error 400
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-
-	// Llamada al repositorio para guardar la solicitud
 	err := c.Repo.SaveRequest(request["username"], request["password_hash"])
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Respondemos con código 201 (Created) si todo salió bien
-	ctx.JSON(http.StatusCreated, gin.H{"message": "Solicitud enviada"})
+		ctx.JSON(http.StatusCreated, gin.H{"message": "Solicitud enviada"})
 }
-
-// Adaptar la función GetPendingRequests a Gin
 func (c *UserController) GetPendingRequests(ctx *gin.Context) {
-	// Obtener las solicitudes pendientes desde el repositorio
 	requests, err := c.Repo.GetPendingRequests()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Enviar la respuesta en formato JSON
 	ctx.JSON(http.StatusOK, requests)
 }
 
-// Adaptar la función ApproveUser a Gin
 func (c *UserController) ApproveUser(ctx *gin.Context) {
 	// Obtener parámetros de la URL
 	id, _ := strconv.Atoi(ctx.DefaultQuery("id", "0"))
 	macAddress := ctx.DefaultQuery("mac", "")
 
-	// Crear el caso de uso para aprobar al usuario
 	useCase := equipmentusecases.NewApproveUserUseCase(c.Repo)
 	err := useCase.Execute(id, macAddress)
 	if err != nil {
@@ -64,6 +50,34 @@ func (c *UserController) ApproveUser(ctx *gin.Context) {
 		return
 	}
 
-	// Responder con éxito
 	ctx.JSON(http.StatusOK, gin.H{"message": "Usuario aprobado"})
+}
+
+func (c *UserController) RejectUser(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	useCase := equipmentusecases.NewRejectUserUseCase(c.Repo)
+	err = useCase.Execute(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Solicitud de usuario rechazada"})
+}
+
+func (c *UserController) GetApprovedUsers(ctx *gin.Context) {
+	useCase := equipmentusecases.NewGetApprovedUsersUseCase(c.Repo)
+	users, err := useCase.Execute()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
 }
