@@ -1,15 +1,23 @@
 package equipment
 
 import (
+	"database/sql"
+	"log"
+
 	controllers "gym-system/src/inventory/Users/infraestructure/controllers"
+	"gym-system/src/inventory/Users/infraestructure/database"
+
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterUserRoutes(r *gin.Engine) {
-	
-	controller := controllers.UserController{}
+func RegisterUserRoutes(r *gin.Engine, db *sql.DB) {
+	repo, err := database.NewMySQLUserRepository()
+	if err != nil {
+		log.Fatalf("Error al inicializar el repositorio de usuarios: %v", err)
+	}
 
-	// Registrar las rutas
+	controller := controllers.NewUserController(repo)
+
 	r.POST("/register", controller.RegisterUser)
 	r.GET("/pending_requests", controller.GetPendingRequests)
 	r.POST("/approve", controller.ApproveUser)
