@@ -27,7 +27,7 @@ func (c *UserController) RegisterUser(ctx *gin.Context) {
 	}
 
 	// Llamada al repositorio para guardar la solicitud
-	err := c.Repo.SaveRequest(request["username"], request["password"])
+	err := c.Repo.SaveRequest(request["username"], request["password_hash"])
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
