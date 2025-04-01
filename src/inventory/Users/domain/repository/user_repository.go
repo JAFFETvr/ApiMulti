@@ -7,3 +7,5 @@ type IUserRepository interface {
 	RejectUser(id int) error
 	GetApprovedUsers() ([]map[string]interface{}, error) 
 }
+
+//
